@@ -27,6 +27,7 @@ from matplotlib_venn import venn3
 from PIL import Image
 import statsmodels.api as sm
 import gc
+import base64
 #plt.rcParams['font.family']= 'sans-serif'
 #plt.rcParams['font.sans-serif'] = ['Arial']
 plt.rcParams['xtick.direction'] = 'out'
@@ -39,7 +40,7 @@ plt.rcParams['figure.dpi'] = 300
 
 #Main
 st.set_page_config(layout="wide")
-st.title("iTraNet: integrated Trans-omics Network visualization and analysis")
+st.title("iTraNet: integrated Trans-Omics Network Visualization and Analysis")
 st.write("This website is free and open to all users and there is no login requirement.")
 
 #1, upload omics data
@@ -60,8 +61,15 @@ with zipfile.ZipFile('demo.zip', 'x') as csv_zip:
     csv_zip.writestr("Background gene.csv", 
                     pd.read_csv("./Database/RefGene.csv").dropna().reset_index(drop=True).to_csv(index=False))        
 with open("demo.zip", "rb") as file:
-    st.sidebar.download_button(label = "Download demo data",data = file,file_name = "demo.zip")
-
+    #st.sidebar.download_button(label = "Download demo data",data = file,file_name = "demo.zip")
+    zip_data = file.read()
+    b64 = base64.b64encode(zip_data).decode()
+    zip_filename = 'demo.zip'
+    href = f'<a href="data:application/zip;base64,{b64}" download="{zip_filename}">Download demo data</a>'
+    st.sidebar.markdown(href, unsafe_allow_html=True)
+if(os.path.isfile('demo.zip')):
+    os.remove('demo.zip')
+    
 Tran = st.sidebar.file_uploader("Transcriptome (organ or cell)", type="csv")
 Meta1 =st.sidebar.file_uploader("Metabolome (organ or cell)", type="csv")
 
@@ -1192,8 +1200,8 @@ if selected_option=="C, metabolic network (including enzyme, mRNA, and metabolit
         net.show("mRNAmetabolite-Enzyme.html")
         HtmlFile = open("mRNAmetabolite-Enzyme.html", 'r')
         components.html(HtmlFile.read(), height=900)
-        st.download_button(label="Download the interactice network",data=open("mRNAmetabolite-Enzyme.html", 'r'),
-                        file_name="mRNAmetabolite-Enzyme.html")           
+        #st.download_button(label="Download the interactice network",data=open("mRNAmetabolite-Enzyme.html", 'r'),
+        #                file_name="mRNAmetabolite-Enzyme.html")           
         
         #Num. regulated reactions
         TraNum=len(Output_ALL1[Output_ALL1["Transcript_number"]>0])
@@ -1532,7 +1540,15 @@ if selected_option=="C, metabolic network (including enzyme, mRNA, and metabolit
                 csv_zip.writestr("List of loops.csv", 
                                 output3.to_csv(index=False))
             with open("mRNAmetabolite-Enzyme.zip", "rb") as file: 
-                st.download_button(label = "Download mRNAmetabolite-Enzyme data",data = file,file_name = "mRNAmetabolite-Enzyme.zip")
+                #st.download_button(label = "Download mRNAmetabolite-Enzyme data",data = file,file_name = "mRNAmetabolite-Enzyme.zip")
+                zip_data = file.read()
+                b64 = base64.b64encode(zip_data).decode()
+                zip_filename = 'mRNAmetabolite-Enzyme.zip'
+                href = f'<a href="data:application/zip;base64,{b64}" download="{zip_filename}">Download the results</a>'
+                st.markdown(href, unsafe_allow_html=True)         
+            if(os.path.isfile('mRNAmetabolite-Enzyme.zip')):
+                os.remove('mRNAmetabolite-Enzyme.zip')          
+        
         del Meta_KEGG2
         #del Meta_KEGG
         del Tran_KEGG
@@ -1573,7 +1589,9 @@ if selected_option=="C, metabolic network (including enzyme, mRNA, and metabolit
         f=open('./Fig/4.txt', 'r')
         st.write(f.read())
         f.close()        
-        
+        st.subheader('Help')
+        st.write("If loading bars of interactive networks show 0%, please visit the following URL: https://github.com/WestHealth/pyvis/issues/25")
+         
         #st.write("Please upload metabolome (organ or cell) and transciptome data (organ or cell).")
      
         
